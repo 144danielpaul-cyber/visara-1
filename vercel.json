@@ -1,0 +1,38 @@
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+```
+5. Click **"Commit changes"** (green button)
+
+---
+
+### Step 4 — Vercel Auto-Redeploys
+
+As soon as you commit `vercel.json`:
+- Vercel **automatically detects the change**
+- Redeploys in **30 seconds**
+- Your site goes live at:
+```
+https://visara-1.vercel.app
+```
+
+---
+
+### Step 5 — Test It
+
+Open a new tab and go to:
+```
+https://visara-1.vercel.app
+```
+
+You should see your **VISARA website** fully loaded! 🎉
+
+---
+
+## ⚠️ While You're in GitHub — Also Verify This
+
+Click on your `index.html` file in GitHub and press **Ctrl+F** to search for:
+```
+YOUR_API_URL_HERE
