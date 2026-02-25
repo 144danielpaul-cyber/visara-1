@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VISARA — The Science of Your Face</title>
+<meta name="description" content="Precision beauty analysis powered by Golden Ratio mathematics. Upload your photo and receive a scientific facial harmony score.">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── CSS VARIABLES ──────────────────────────────────────────────────────── */
+:root {
+  --bg-void:       #080808;
+  --bg-surface:    #0f0e0c;
+  --bg-elevated:   #161411;
+  --gold:          #c9a84c;
+  --gold-bright:   #dfc06a;
+  --gold-dim:      #8a6f30;
+  --gold-ghost:    rgba(201,168,76,0.07);
+  --gold-line:     rgba(201,168,76,0.2);
+  --text:          #f5f0e8;
+  --text-dim:      rgba(245,240,232,0.55);
+  --text-ghost:    rgba(245,240,232,0.25);
+  --border-hair:   rgba(245,240,232,0.06);
+  --border-subtle: rgba(245,240,232,0.10);
+  --border-gold:   rgba(201,168,76,0.25);
+  --scan-good:     #a8c5a0;
+  --scan-poor:     #c97b6e;
+  --scan-gold:     #c9a84c;
+  --radius:        2px;
+}
+
+/* ─── RESET & BASE ───────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg-void);
+  color: var(--text);
+  font-family: 'Jost', sans-serif;
+  font-weight: 300;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+img { display: block; max-width: 100%; }
+button { cursor: pointer; font-family: 'Jost', sans-serif; border: none; outline: none; }
+
+/* ─── TYPOGRAPHY HELPERS ─────────────────────────────────────────────────── */
+.cormorant { font-family: 'Cormorant Garamond', serif; }
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  justify-content: center;
+  font-family: 'Jost', sans-serif;
+  font-weight: 200;
+  font-size: 0.6rem;
+  letter-spacing: 0.45em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 56px;
+}
+.section-label::before,
+.section-label::after {
+  content: '';
+  flex: 1;
+  max-width: 60px;
+  height: 1px;
+  background: var(--gold-dim);
+}
+
+/* ─── ANIMATIONS ─────────────────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-7px); }
+}
+@keyframes scanLine {
+  0%   { left: -100%; }
+  100% { left: 100%; }
+}
+@keyframes revealResult {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes barFill {
+  from { width: 0%; }
+}
+@keyframes pulseGold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0.25); }
+  50%       { box-shadow: 0 0 0 8px rgba(201,168,76,0); }
+}
+
+/* ─── NAVIGATION ─────────────────────────────────────────────────────────── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  background: rgba(8,8,8,0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-hair);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+}
+.nav-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: 1.3rem;
+  letter-spacing: 0.38em;
+  color: var(--text);
+  text-decoration: none;
+}
+.nav-logo sup {
+  font-size: 0.45rem;
+  color: var(--gold);
+  letter-spacing: 0;
+  vertical-align: super;
+  margin-left: 2px;
+}
+.nav-cta {
+  font-family: 'Jost', sans-serif;
+  font-weight: 200;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: color 300ms;
+}
+.nav-cta:hover { color: var(--gold); }
+
+/* ─── HERO ───────────────────────────────────────────────────────────────── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 80px 24px 60px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 55% at 50% 42%, rgba(201,168,76,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.5;
+}
+.hero-pre {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-weight: 200;
+  font-size: 0.6rem;
+  letter-spacing: 0.45em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 32px;
+  animation: fadeUp 700ms 0ms both cubic-bezier(0.16,1,0.3,1);
+}
+.hero-pre::before, .hero-pre::after {
+  content: '';
+  width: 40px;
+  height: 1px;
+  background: var(--gold-dim);
+}
+.hero-headline {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-style: italic;
+  font-size: clamp(3.2rem, 8.5vw, 7rem);
+  line-height: 1.04;
+  color: var(--text);
+  margin-bottom: 28px;
+  animation: fadeUp 700ms 150ms both cubic-bezier(0.16,1,0.3,1);
+}
+.hero-sub {
+  font-weight: 300;
+  font-size: clamp(0.85rem, 2vw, 1rem);
+  color: var(--text-dim);
+  max-width: 440px;
+  line-height: 1.85;
+  margin-bottom: 32px;
+  animation: fadeUp 700ms 320ms both cubic-bezier(0.16,1,0.3,1);
+}
+.hero-badges {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  font-weight: 200;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  color: var(--text-ghost);
+  margin-bottom: 52px;
+  flex-wrap: wrap;
+  justify-content: center;
+  animation: fadeUp 700ms 480ms both cubic-bezier(0.16,1,0.3,1);
+}
+.hero-badges span { color: var(--gold-dim); }
+.hero-arrow {
+  animation: fadeUp 700ms 650ms both cubic-bezier(0.16,1,0.3,1), float 3s ease-in-out 1.4s infinite;
+  cursor: pointer;
+  color: var(--gold);
+  opacity: 0.7;
+  transition: opacity 300ms;
+}
+.hero-arrow:hover { opacity: 1; }
+.hero-arrow svg { width: 20px; height: 20px; }
+
+/* ─── UPLOAD SECTION ─────────────────────────────────────────────────────── */
+.upload-section {
+  padding: 100px 24px 80px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.upload-intro {
+  text-align: center;
+  font-weight: 300;
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  max-width: 460px;
+  margin: 0 auto 52px;
+  line-height: 1.85;
+}
+.upload-zones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.upload-zone {
+  min-height: 280px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 20px;
+  cursor: crosshair;
+  transition: border-color 400ms, background 400ms;
+  position: relative;
+  overflow: hidden;
+}
+.upload-zone:hover {
+  border-color: var(--border-gold);
+  background: var(--gold-ghost);
+}
+.upload-zone.drag-over {
+  border-color: var(--gold);
+  background: rgba(201,168,76,0.05);
+}
+.upload-zone.has-image {
+  border-color: var(--gold);
+  padding: 0;
+}
+.zone-label {
+  font-weight: 200;
+  font-size: 0.58rem;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.zone-label.secondary { color: var(--text-dim); }
+.zone-icon {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.zone-icon svg {
+  width: 48px;
+  height: 48px;
+  stroke: var(--border-subtle);
+  transition: stroke 400ms;
+}
+.upload-zone:hover .zone-icon svg { stroke: var(--gold-dim); }
+.zone-hint {
+  font-weight: 200;
+  font-size: 0.68rem;
+  color: var(--text-ghost);
+  text-align: center;
+  line-height: 1.6;
+}
+.zone-badge {
+  font-weight: 300;
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+}
+.zone-badge.optional { color: var(--text-ghost); }
+.zone-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+.zone-check {
+  position: absolute;
+  top: 10px; right: 10px;
+  width: 22px; height: 22px;
+  background: var(--gold);
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  color: #080808;
+  font-weight: 500;
+}
+.zone-remove {
+  position: absolute;
+  top: 10px; left: 10px;
+  width: 22px; height: 22px;
+  background: rgba(8,8,8,0.75);
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  transition: color 200ms;
+  cursor: pointer;
+  border: 1px solid var(--border-subtle);
+  z-index: 5;
+}
+.zone-remove:hover { color: var(--text); }
+.upload-zone.has-image .zone-preview { display: block; }
+.upload-zone.has-image .zone-check  { display: flex; }
+.upload-zone.has-image .zone-remove { display: flex; }
+.upload-zone.has-image .zone-label,
+.upload-zone.has-image .zone-icon,
+.upload-zone.has-image .zone-hint,
+.upload-zone.has-image .zone-badge { display: none; }
+
+/* Analyze Button */
+.analyze-btn {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  height: 52px;
+  margin: 0 auto;
+  background: var(--gold);
+  color: #080808;
+  font-family: 'Jost', sans-serif;
+  font-weight: 500;
+  font-size: 0.72rem;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  border-radius: var(--radius);
+  position: relative;
+  overflow: hidden;
+  transition: background 300ms;
+}
+.analyze-btn:disabled {
+  background: var(--bg-elevated);
+  color: var(--text-ghost);
+  border: 1px solid var(--border-subtle);
+  cursor: not-allowed;
+  animation: none;
+}
+.analyze-btn.ready { animation: pulseGold 2.5s infinite; }
+.analyze-btn:not(:disabled):hover { background: var(--gold-bright); }
+.analyze-btn.loading {
+  background: var(--bg-elevated);
+  color: var(--gold);
+  border: 1px solid var(--gold-dim);
+  cursor: not-allowed;
+  animation: none;
+}
+.scan-bar {
+  display: none;
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  animation: scanLine 1.4s linear infinite;
+}
+.analyze-btn.loading .scan-bar { display: block; }
+.upload-tip {
+  text-align: center;
+  font-weight: 200;
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  color: var(--text-ghost);
+  margin-top: 16px;
+}
+
+/* Error */
+.error-msg {
+  display: none;
+  border: 1px solid rgba(201,100,80,0.3);
+  background: rgba(201,100,80,0.04);
+  color: rgba(201,100,80,0.85);
+  font-weight: 300;
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+}
+.error-msg.show { display: block; }
+
+/* ─── RESULTS SECTION ────────────────────────────────────────────────────── */
+#results {
+  display: none;
+  animation: revealResult 800ms cubic-bezier(0.16,1,0.3,1) forwards;
+}
+#results.visible { display: block; }
+
+/* Face Canvas Container */
+.face-canvas-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto 2px;
+  overflow: hidden;
+}
+.face-canvas-wrap img {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+}
+.face-canvas-wrap canvas {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+}
+.caption-bar {
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-gold);
+  padding: 13px 24px;
+  text-align: center;
+  font-weight: 300;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  font-style: italic;
+  max-width: 640px;
+  margin: 0 auto 32px;
+  min-height: 48px;
+}
+
+/* Results Container */
+.results-inner {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Metric Cards Grid */
+.cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--bg-void);
+  margin-bottom: 1px;
+}
+.metric-card {
+  background: var(--bg-surface);
+  padding: 28px 28px 24px;
+}
+.metric-card.full-width {
+  grid-column: 1 / -1;
+  border: 1px solid var(--border-gold);
+  margin-top: 16px;
+}
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 14px;
+}
+.card-name {
+  font-weight: 400;
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.card-score {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: 1.8rem;
+  color: var(--text);
+  line-height: 1;
+}
+.progress-track {
+  width: 100%;
+  height: 1px;
+  background: var(--bg-elevated);
+  margin-bottom: 10px;
+  position: relative;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 1.2s cubic-bezier(0.16,1,0.3,1);
+}
+.card-interp {
+  font-weight: 200;
+  font-size: 0.72rem;
+  color: var(--text-ghost);
+  margin-bottom: 12px;
+}
+.card-toggle {
+  font-weight: 200;
+  font-size: 0.62rem;
+  letter-spacing: 0.15em;
+  color: var(--gold-dim);
+  cursor: pointer;
+  background: none;
+  text-transform: uppercase;
+  transition: color 200ms;
+  padding: 0;
+}
+.card-toggle:hover { color: var(--gold); }
+.card-details {
+  display: none;
+  margin-top: 14px;
+  border-top: 1px solid var(--border-hair);
+  padding-top: 14px;
+}
+.card-details.open { display: block; }
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.detail-name {
+  font-size: 0.65rem;
+  font-weight: 200;
+  color: var(--text-ghost);
+  min-width: 130px;
+  flex-shrink: 0;
+  text-transform: capitalize;
+}
+.detail-track {
+  flex: 1;
+  height: 1px;
+  background: var(--bg-elevated);
+  position: relative;
+}
+.detail-fill {
+  height: 100%;
+  transition: width 0.8s ease;
+}
+.detail-val {
+  font-size: 0.65rem;
+  font-weight: 300;
+  color: var(--text-dim);
+  min-width: 32px;
+  text-align: right;
+}
+
+/* Profile Measurements */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+.profile-row {
+  padding: 14px 0;
+  border-top: 1px solid var(--border-hair);
+}
+.profile-row-name {
+  font-size: 0.65rem;
+  font-weight: 300;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+.profile-row-val {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 400;
+  font-size: 1.3rem;
+  margin-bottom: 2px;
+}
+.profile-row-ideal {
+  font-size: 0.6rem;
+  font-weight: 200;
+  color: var(--text-ghost);
+  letter-spacing: 0.1em;
+}
+.dot-good { color: var(--scan-good); }
+.dot-poor { color: var(--scan-poor); }
+
+/* Summary Card */
+.summary-card {
+  background: var(--bg-surface);
+  padding: 32px;
+  margin-top: 1px;
+}
+.summary-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--text);
+  line-height: 1.75;
+  margin-bottom: 20px;
+}
+.tips-list {
+  list-style: none;
+}
+.tips-list li {
+  font-weight: 300;
+  font-size: 0.83rem;
+  color: var(--text-dim);
+  line-height: 1.75;
+  padding: 8px 0;
+  border-top: 1px solid var(--border-hair);
+  display: flex;
+  gap: 12px;
+}
+.tips-list li::before {
+  content: '—';
+  color: var(--gold-dim);
+  flex-shrink: 0;
+}
+
+/* Action Card */
+.action-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-gold);
+  padding: 36px 32px;
+  margin-top: 20px;
+  text-align: center;
+}
+.action-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--bg-void);
+  margin: 24px 0;
+  text-align: left;
+}
+.action-item {
+  background: var(--bg-surface);
+  padding: 16px 18px;
+}
+.action-item-label {
+  font-size: 0.6rem;
+  font-weight: 200;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-ghost);
+  margin-bottom: 4px;
+}
+.action-item-value {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 400;
+  font-size: 1.2rem;
+  color: var(--text);
+}
+.action-btns {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.btn-ghost {
+  height: 46px;
+  padding: 0 28px;
+  border: 1px solid var(--border-gold);
+  background: transparent;
+  color: var(--gold);
+  font-family: 'Jost', sans-serif;
+  font-weight: 300;
+  font-size: 0.68rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  border-radius: var(--radius);
+  transition: background 300ms, color 300ms;
+}
+.btn-ghost:hover { background: var(--gold-ghost); }
+.btn-filled {
+  height: 46px;
+  padding: 0 28px;
+  background: var(--gold);
+  color: #080808;
+  font-family: 'Jost', sans-serif;
+  font-weight: 500;
+  font-size: 0.68rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  border-radius: var(--radius);
+  transition: background 300ms;
+}
+.btn-filled:hover { background: var(--gold-bright); }
+
+/* ─── METHOD SECTION ─────────────────────────────────────────────────────── */
+.method-section {
+  padding: 100px 24px;
+  max-width: 860px;
+  margin: 0 auto;
+}
+.steps-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  gap: 0;
+  align-items: start;
+}
+.step-divider {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 10px;
+  color: var(--gold-dim);
+  font-size: 0.5rem;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+.step-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: 2.4rem;
+  color: var(--gold-dim);
+  line-height: 1;
+  margin-bottom: 10px;
+}
+.step-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 500;
+  font-size: 1.25rem;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.step-body {
+  font-weight: 300;
+  font-size: 0.83rem;
+  color: var(--text-dim);
+  line-height: 1.8;
+}
+.step { padding-right: 8px; }
+
+/* ─── SCIENCE SECTION ────────────────────────────────────────────────────── */
+.science-section {
+  padding: 80px 24px 100px;
+  max-width: 860px;
+  margin: 0 auto;
+}
+.science-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+}
+.science-item {
+  padding: 24px 20px 20px;
+  border-top: 1px solid var(--border-hair);
+}
+.science-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: 0.75rem;
+  color: var(--gold-dim);
+  margin-bottom: 10px;
+  display: block;
+}
+.science-title {
+  font-weight: 400;
+  font-size: 0.85rem;
+  color: var(--text);
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+.science-body {
+  font-weight: 200;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+
+/* ─── PRIVACY ────────────────────────────────────────────────────────────── */
+.privacy-section {
+  padding: 60px 24px;
+  text-align: center;
+  border-top: 1px solid var(--border-hair);
+  border-bottom: 1px solid var(--border-hair);
+}
+.privacy-section svg {
+  margin: 0 auto 14px;
+  opacity: 0.28;
+}
+.privacy-text {
+  font-weight: 200;
+  font-size: 0.82rem;
+  color: var(--text-ghost);
+  max-width: 480px;
+  margin: 0 auto;
+  line-height: 1.85;
+  letter-spacing: 0.04em;
+}
+
+/* ─── FOOTER ─────────────────────────────────────────────────────────────── */
+footer {
+  padding: 48px 24px;
+  text-align: center;
+}
+.footer-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: 1.15rem;
+  letter-spacing: 0.38em;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+.footer-tag {
+  font-weight: 200;
+  font-size: 0.68rem;
+  color: var(--text-ghost);
+  font-style: italic;
+  margin-bottom: 20px;
+}
+.footer-disclaimer {
+  font-weight: 200;
+  font-size: 0.62rem;
+  color: var(--text-ghost);
+  max-width: 460px;
+  margin: 0 auto 16px;
+  line-height: 1.75;
+}
+.footer-copy {
+  font-weight: 200;
+  font-size: 0.58rem;
+  color: rgba(245,240,232,0.15);
+  letter-spacing: 0.12em;
+}
+
+/* ─── RESPONSIVE ─────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  nav { padding: 0 20px; }
+  .hero { padding: 80px 20px 52px; }
+  .upload-section { padding: 80px 20px 60px; }
+  .upload-zones { grid-template-columns: 1fr; }
+  .upload-zone { min-height: 180px; }
+  .analyze-btn { max-width: 100%; }
+  .cards-grid { grid-template-columns: 1fr; }
+  .steps-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .step-divider { display: none; }
+  .science-grid { grid-template-columns: 1fr 1fr; }
+  .action-summary { grid-template-columns: 1fr; }
+  .profile-grid { grid-template-columns: 1fr; }
+  .results-inner { padding: 0 16px; }
+}
+@media (max-width: 400px) {
+  .science-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ─── NAV ──────────────────────────────────────────────────────────────── -->
+<nav>
+  <a href="#" class="nav-logo">VISARA<sup>®</sup></a>
+  <a href="#upload" class="nav-cta">Analyze</a>
+</nav>
+
+<!-- ─── HERO ─────────────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-pre">VISARA &nbsp;·&nbsp; BEAUTY INTELLIGENCE</div>
+  <h1 class="hero-headline">The Science<br>of Your Face.</h1>
+  <p class="hero-sub">Measure your facial proportions against the Golden Ratio φ = 1.618. Upload a photograph. Receive your analysis.</p>
+  <div class="hero-badges">
+    <span>φ</span> Golden Ratio &nbsp;·&nbsp; <span>468</span> Landmarks &nbsp;·&nbsp; <span>100%</span> Private
+  </div>
+  <div class="hero-arrow" onclick="document.getElementById('upload').scrollIntoView({behavior:'smooth'})">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M12 5v14M5 12l7 7 7-7"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ─── UPLOAD ────────────────────────────────────────────────────────────── -->
+<section class="upload-section" id="upload">
+  <div class="section-label">ANALYSIS &nbsp;·&nbsp; UPLOAD YOUR IMAGES</div>
+  <p class="upload-intro">Upload a frontal photograph and, optionally, a side profile. VISARA maps your facial landmarks and calculates your Golden Ratio harmony score.</p>
+
+  <div id="errorMsg" class="error-msg"></div>
+
+  <div class="upload-zones">
+    <!-- Frontal Zone -->
+    <div class="upload-zone" id="frontalZone">
+      <span class="zone-label">Frontal</span>
+      <div class="zone-icon">
+        <svg viewBox="0 0 64 80" fill="none" stroke-width="1">
+          <ellipse cx="32" cy="32" rx="22" ry="28"/>
+          <circle cx="24" cy="28" r="2.5"/>
+          <circle cx="40" cy="28" r="2.5"/>
+          <path d="M26 40 q6 4 12 0"/>
+          <line x1="32" y1="60" x2="32" y2="72"/>
+          <line x1="22" y1="68" x2="42" y2="68"/>
+        </svg>
+      </div>
+      <p class="zone-hint">Looking directly<br>at camera</p>
+      <span class="zone-badge">Required</span>
+      <img class="zone-preview" id="frontalPreview" alt="Frontal face preview">
+      <div class="zone-check">✓</div>
+      <button class="zone-remove" id="frontalRemove" onclick="removeImage('frontal',event)">×</button>
+    </div>
+
+    <!-- Side Profile Zone -->
+    <div class="upload-zone" id="sideZone">
+      <span class="zone-label secondary">Profile</span>
+      <div class="zone-icon">
+        <svg viewBox="0 0 64 80" fill="none" stroke-width="1">
+          <path d="M38 10 Q52 20 50 38 Q48 54 36 62 L24 68"/>
+          <circle cx="42" cy="26" r="2.5"/>
+          <path d="M50 34 Q56 34 54 38"/>
+          <path d="M36 52 Q40 56 44 52"/>
+          <line x1="24" y1="68" x2="24" y2="76"/>
+          <line x1="18" y1="74" x2="32" y2="74"/>
+        </svg>
+      </div>
+      <p class="zone-hint">90° side view<br>profile angle</p>
+      <span class="zone-badge optional">Optional</span>
+      <img class="zone-preview" id="sidePreview" alt="Side profile preview">
+      <div class="zone-check">✓</div>
+      <button class="zone-remove" id="sideRemove" onclick="removeImage('side',event)">×</button>
+    </div>
+  </div>
+
+  <input type="file" id="frontalInput" accept="image/jpeg,image/png,image/webp" hidden>
+  <input type="file" id="sideInput"    accept="image/jpeg,image/png,image/webp" hidden>
+
+  <button class="analyze-btn" id="analyzeBtn" disabled onclick="startAnalysis()">
+    <span class="scan-bar"></span>
+    <span id="analyzeBtnText">ANALYZE</span>
+  </button>
+  <p class="upload-tip">JPEG · PNG · WEBP &nbsp;·&nbsp; Max 10MB &nbsp;·&nbsp; Min 480px</p>
+</section>
+
+<!-- ─── RESULTS ───────────────────────────────────────────────────────────── -->
+<section id="results">
+  <!-- Frontal Annotated Photo -->
+  <div class="face-canvas-wrap" id="frontalWrap">
+    <img id="resultFrontal" alt="Frontal analysis">
+    <canvas id="frontalCanvas"></canvas>
+  </div>
+  <div class="caption-bar" id="captionBar">Initializing analysis…</div>
+
+  <!-- Side Profile Annotated Photo -->
+  <div class="face-canvas-wrap" id="sideWrap" style="display:none;">
+    <img id="resultSide" alt="Side profile analysis">
+    <canvas id="sideCanvas"></canvas>
+  </div>
+  <div class="caption-bar" id="sideCaption" style="display:none;"></div>
+
+  <div class="results-inner">
+    <div class="section-label" style="margin-top:40px;">ANALYSIS &nbsp;·&nbsp; DETAILED BREAKDOWN</div>
+
+    <!-- Metric Cards -->
+    <div class="cards-grid" id="cardsGrid">
+      <div class="metric-card" id="card-golden">
+        <div class="card-top">
+          <span class="card-name">Golden Ratio</span>
+          <span class="card-score cormorant" id="s-golden">—</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="p-golden"></div></div>
+        <div class="card-interp" id="i-golden"></div>
+        <button class="card-toggle" onclick="toggleDetails('golden')">View Measurements ▾</button>
+        <div class="card-details" id="d-golden"></div>
+      </div>
+
+      <div class="metric-card" id="card-symmetry">
+        <div class="card-top">
+          <span class="card-name">Symmetry</span>
+          <span class="card-score cormorant" id="s-symmetry">—</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="p-symmetry"></div></div>
+        <div class="card-interp" id="i-symmetry"></div>
+        <button class="card-toggle" onclick="toggleDetails('symmetry')">View Measurements ▾</button>
+        <div class="card-details" id="d-symmetry"></div>
+      </div>
+
+      <div class="metric-card" id="card-canons">
+        <div class="card-top">
+          <span class="card-name">Neoclassical Canons</span>
+          <span class="card-score cormorant" id="s-canons">—</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="p-canons"></div></div>
+        <div class="card-interp" id="i-canons"></div>
+        <button class="card-toggle" onclick="toggleDetails('canons')">View Measurements ▾</button>
+        <div class="card-details" id="d-canons"></div>
+      </div>
+
+      <div class="metric-card" id="card-features">
+        <div class="card-top">
+          <span class="card-name">Feature Proportions</span>
+          <span class="card-score cormorant" id="s-features">—</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="p-features"></div></div>
+        <div class="card-interp" id="i-features"></div>
+        <button class="card-toggle" onclick="toggleDetails('features')">View Measurements ▾</button>
+        <div class="card-details" id="d-features"></div>
+      </div>
+    </div>
+
+    <!-- Side Profile Card (conditional) -->
+    <div class="metric-card full-width" id="card-profile" style="display:none;">
+      <div class="card-top">
+        <span class="card-name">Side Profile Analysis</span>
+        <span class="card-score cormorant" id="s-profile">—</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="p-profile"></div></div>
+      <div class="card-interp" id="i-profile"></div>
+      <div class="profile-grid" id="profile-measurements"></div>
+    </div>
+
+    <!-- Summary -->
+    <div class="summary-card" id="summaryCard">
+      <p class="summary-text" id="summaryText"></p>
+      <ul class="tips-list" id="tipsList"></ul>
+    </div>
+
+    <!-- Action Card -->
+    <div class="action-card">
+      <div class="section-label" style="margin-bottom:0;">VISARA &nbsp;·&nbsp; ANALYSIS COMPLETE</div>
+      <div class="action-summary" id="actionSummary"></div>
+      <div class="action-btns">
+        <button class="btn-ghost" id="copyBtn" onclick="copyResults()">Copy Results</button>
+        <button class="btn-filled" onclick="resetAll()">Analyze Again</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── METHOD ────────────────────────────────────────────────────────────── -->
+<section class="method-section">
+  <div class="section-label">THE METHOD &nbsp;·&nbsp; THREE STEPS</div>
+  <div class="steps-grid">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-title">Upload</div>
+      <div class="step-body">Submit a frontal photograph. A side profile is optional but enables full profile geometry analysis.</div>
+    </div>
+    <div class="step-divider">◆</div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-title">Measure</div>
+      <div class="step-body">VISARA maps 468 facial landmarks and calculates seven Golden Ratio proportions, eleven symmetry pairs, and neoclassical aesthetic canons.</div>
+    </div>
+    <div class="step-divider">◆</div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-title">Receive</div>
+      <div class="step-body">Your complete analysis is displayed with measurements drawn directly on your photograph. No data is stored.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── SCIENCE ───────────────────────────────────────────────────────────── -->
+<section class="science-section">
+  <div class="section-label">SCIENCE &nbsp;·&nbsp; WHAT WE MEASURE</div>
+  <div class="science-grid">
+    <div class="science-item">
+      <span class="science-num">I</span>
+      <div class="science-title">φ &nbsp;Golden Ratio</div>
+      <div class="science-body">Seven facial proportions measured against φ = 1.618 — the mathematical constant of natural beauty.</div>
+    </div>
+    <div class="science-item">
+      <span class="science-num">II</span>
+      <div class="science-title">Bilateral Symmetry</div>
+      <div class="science-body">Eleven landmark pairs compared left to right across eyes, brows, jaw, and mouth.</div>
+    </div>
+    <div class="science-item">
+      <span class="science-num">III</span>
+      <div class="science-title">Neoclassical Canons</div>
+      <div class="science-body">Rule of Thirds, Rule of Fifths, and the classical proportions codified by Renaissance artists.</div>
+    </div>
+    <div class="science-item">
+      <span class="science-num">IV</span>
+      <div class="science-title">Feature Proportions</div>
+      <div class="science-body">Eyes, lips, brows, jawline, and nose ratios analyzed for individual harmony.</div>
+    </div>
+    <div class="science-item">
+      <span class="science-num">V</span>
+      <div class="science-title">Side Profile Geometry</div>
+      <div class="science-body">Five angular measurements — nasofrontal, nasolabial, convexity, chin and nose projection.</div>
+    </div>
+    <div class="science-item">
+      <span class="science-num">VI</span>
+      <div class="science-title">Face Shape</div>
+      <div class="science-body">Oval, Round, Square, Heart, Diamond, or Rectangle classification based on facial geometry.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PRIVACY ───────────────────────────────────────────────────────────── -->
+<section class="privacy-section">
+  <svg width="18" height="22" viewBox="0 0 18 22" fill="none" stroke="currentColor" stroke-width="1.2">
+    <rect x="2" y="9" width="14" height="12" rx="2"/>
+    <path d="M5 9V6a4 4 0 018 0v3"/>
+    <circle cx="9" cy="15" r="1.5" fill="currentColor"/>
+  </svg>
+  <p class="privacy-text">Your photographs are processed in real time and permanently discarded upon analysis completion. VISARA stores nothing.</p>
+</section>
+
+<!-- ─── FOOTER ────────────────────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-logo">VISARA</div>
+  <div class="footer-tag">The science of your face.</div>
+  <p class="footer-disclaimer">Beauty scores are based on mathematical proportions only. Results are for educational and entertainment purposes. Beauty is subjective, personal, and culturally defined.</p>
+  <div class="footer-copy">© 2025 VISARA</div>
+</footer>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// VISARA API CONFIGURATION
+// Replace the URL below with your deployed API endpoint
+// Example: 'https://your-api.railway.app'
+// ─────────────────────────────────────────────────────────────────────────────
+const API_URL = 'YOUR_API_URL_HERE';
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let frontalFile = null;
+let sideFile    = null;
+let lastResult  = null;
+
+// ─── SCORE COLOR ──────────────────────────────────────────────────────────────
+function scoreColor(s) {
+  if (s >= 75) return '#a8c5a0';
+  if (s >= 55) return '#c9a84c';
+  return '#c97b6e';
+}
+
+// ─── UPLOAD ZONE SETUP ───────────────────────────────────────────────────────
+function setupZone(zoneId, inputId, type) {
+  const zone  = document.getElementById(zoneId);
+  const input = document.getElementById(inputId);
+
+  zone.addEventListener('click', () => input.click());
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file, type);
+  });
+  input.addEventListener('change', () => {
+    if (input.files[0]) handleFile(input.files[0], type);
+  });
+}
+
+function handleFile(file, type) {
+  try {
+    validateImageFile(file);
+  } catch(e) {
+    showError(e.message);
+    return;
+  }
+  hideError();
+  const preview = document.getElementById(type === 'frontal' ? 'frontalPreview' : 'sidePreview');
+  const zone    = document.getElementById(type === 'frontal' ? 'frontalZone'    : 'sideZone');
+  const url     = URL.createObjectURL(file);
+  preview.src   = url;
+  zone.classList.add('has-image');
+
+  if (type === 'frontal') frontalFile = file;
+  else                    sideFile    = file;
+  updateBtn();
+}
+
+function removeImage(type, e) {
+  e.stopPropagation();
+  const preview = document.getElementById(type === 'frontal' ? 'frontalPreview' : 'sidePreview');
+  const zone    = document.getElementById(type === 'frontal' ? 'frontalZone'    : 'sideZone');
+  const input   = document.getElementById(type === 'frontal' ? 'frontalInput'   : 'sideInput');
+  preview.src   = '';
+  zone.classList.remove('has-image');
+  input.value   = '';
+  if (type === 'frontal') frontalFile = null;
+  else                    sideFile    = null;
+  updateBtn();
+}
+
+function validateImageFile(file) {
+  const ok = ['image/jpeg','image/jpg','image/png','image/webp'];
+  if (!ok.includes(file.type)) throw new Error('Please upload a JPEG, PNG, or WEBP image.');
+  if (file.size > 10 * 1024 * 1024) throw new Error('Image must be under 10MB.');
+}
+
+function updateBtn() {
+  const btn = document.getElementById('analyzeBtn');
+  if (frontalFile) {
+    btn.disabled = false;
+    btn.classList.add('ready');
+  } else {
+    btn.disabled = true;
+    btn.classList.remove('ready');
+  }
+}
+
+// ─── ERROR DISPLAY ────────────────────────────────────────────────────────────
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function hideError() {
+  document.getElementById('errorMsg').classList.remove('show');
+}
+
+// ─── ANALYSIS ─────────────────────────────────────────────────────────────────
+async function startAnalysis() {
+  if (!frontalFile) return;
+  hideError();
+  setLoading(true);
+
+  try {
+    const formData = new FormData();
+    formData.append('frontal_image', frontalFile);
+    if (sideFile) formData.append('side_image', sideFile);
+
+    const res = await fetch(`${API_URL}/analyze`, { method: 'POST', body: formData });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      const msg = res.status === 422
+        ? 'No face detected. Please upload a clear frontal photograph with even lighting.'
+        : res.status === 500
+        ? 'Analysis could not be completed. Please try again.'
+        : err.detail || `Error ${res.status}`;
+      throw new Error(msg);
+    }
+    const data = await res.json();
+    lastResult = data;
+    renderResults(data);
+  } catch(e) {
+    showError(e.message.includes('fetch') ? 'Unable to reach the analysis server. Verify your API is deployed and running.' : e.message);
+  } finally {
+    setLoading(false);
+  }
+}
+
+function setLoading(on) {
+  const btn  = document.getElementById('analyzeBtn');
+  const text = document.getElementById('analyzeBtnText');
+  btn.disabled = on;
+  btn.classList.toggle('loading', on);
+  btn.classList.toggle('ready', !on && !!frontalFile);
+  text.textContent = on ? 'ANALYZING' : 'ANALYZE';
+}
+
+// ─── RENDER RESULTS ───────────────────────────────────────────────────────────
+function renderResults(d) {
+  const resultsEl = document.getElementById('results');
+  resultsEl.classList.add('visible');
+  setTimeout(() => resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+
+  // Frontal photo + canvas
+  const frontalImg = document.getElementById('resultFrontal');
+  frontalImg.src   = URL.createObjectURL(frontalFile);
+  frontalImg.onload = () => drawFrontalCanvas(d);
+
+  // Side photo + canvas
+  if (sideFile && d.side_profile_analysis) {
+    const sideWrap = document.getElementById('sideWrap');
+    const sideCap  = document.getElementById('sideCaption');
+    const sideImg  = document.getElementById('resultSide');
+    sideWrap.style.display = 'block';
+    sideCap.style.display  = 'block';
+    sideImg.src = URL.createObjectURL(sideFile);
+    sideImg.onload = () => drawSideCanvas(d);
+  }
+
+  // Score cards
+  renderCard('golden',   d.frontal_analysis.golden_ratio,        0);
+  renderCard('symmetry', d.frontal_analysis.symmetry,            300);
+  renderCard('canons',   d.frontal_analysis.neoclassical_canons, 600);
+  renderCard('features', d.frontal_analysis.feature_proportions, 900);
+
+  // Profile card
+  if (d.side_profile_analysis && d.side_profile_analysis.score != null) {
+    renderProfileCard(d.side_profile_analysis);
+  }
+
+  // Summary
+  document.getElementById('summaryText').textContent = d.summary;
+  const tipsList = document.getElementById('tipsList');
+  tipsList.innerHTML = '';
+  (d.tips || []).forEach(t => {
+    const li = document.createElement('li');
+    li.textContent = t;
+    tipsList.appendChild(li);
+  });
+
+  // Action card
+  const items = [
+    { label: 'Overall Score', value: `${Math.round(d.overall_score)} / 100` },
+    { label: 'Grade',         value: d.grade + ' — ' + d.overall_interpretation },
+    { label: 'Face Shape',    value: d.face_shape.shape },
+    { label: 'Frontal Score', value: `${Math.round(d.frontal_analysis.golden_ratio.score)} / 100` },
+  ];
+  document.getElementById('actionSummary').innerHTML = items.map(i => `
+    <div class="action-item">
+      <div class="action-item-label">${i.label}</div>
+      <div class="action-item-value cormorant">${i.value}</div>
+    </div>`).join('');
+}
+
+// ─── SCORE CARD RENDER ────────────────────────────────────────────────────────
+function renderCard(key, data, delay) {
+  if (!data) return;
+  const score = data.score || 0;
+  document.getElementById(`s-${key}`).textContent = Math.round(score);
+  document.getElementById(`i-${key}`).textContent = data.interpretation || '';
+
+  const fill  = document.getElementById(`p-${key}`);
+  const color = scoreColor(score);
+  setTimeout(() => {
+    fill.style.background = color;
+    fill.style.width      = score + '%';
+  }, delay);
+
+  // Build detail rows
+  const breakdown = data.breakdown || data.feature_scores || {};
+  const detailEl  = document.getElementById(`d-${key}`);
+  detailEl.innerHTML = Object.entries(breakdown).map(([k, v]) => {
+    const label = k.replace(/_/g,' ');
+    const c     = scoreColor(v);
+    return `
+      <div class="detail-row">
+        <span class="detail-name">${label}</span>
+        <div class="detail-track">
+          <div class="detail-fill" style="width:${v}%; background:${c};"></div>
+        </div>
+        <span class="detail-val">${Math.round(v)}</span>
+      </div>`;
+  }).join('');
+}
+
+// ─── PROFILE CARD ─────────────────────────────────────────────────────────────
+function renderProfileCard(profile) {
+  const card = document.getElementById('card-profile');
+  card.style.display = 'block';
+
+  const score = profile.score || 0;
+  document.getElementById('s-profile').textContent = Math.round(score);
+  document.getElementById('i-profile').textContent = profile.interpretation || '';
+
+  const fill  = document.getElementById('p-profile');
+  const color = scoreColor(score);
+  setTimeout(() => {
+    fill.style.background = color;
+    fill.style.width      = score + '%';
+  }, 1200);
+
+  const ideals = {
+    nasofrontal_angle_deg:  { label: 'Nasofrontal Angle', unit:'°', min:115, max:130 },
+    nasolabial_angle_deg:   { label: 'Nasolabial Angle',  unit:'°', min:90,  max:110 },
+    facial_convexity_deg:   { label: 'Facial Convexity',  unit:'°', min:160, max:170 },
+    chin_projection_ratio:  { label: 'Chin Projection',   unit:'',  min:0.85,max:1.05 },
+    nose_projection_ratio:  { label: 'Nose Projection',   unit:'',  min:0.24,max:0.32 },
+  };
+  const container = document.getElementById('profile-measurements');
+  container.innerHTML = Object.entries(ideals).map(([k, cfg]) => {
+    const val  = profile.measurements?.[k];
+    if (val == null) return '';
+    const good = val >= cfg.min && val <= cfg.max;
+    const cls  = good ? 'dot-good' : 'dot-poor';
+    const dot  = good ? '● GOOD' : '● REVIEW';
+    const disp = Number.isInteger(val) ? val : val.toFixed(2);
+    return `
+      <div class="profile-row">
+        <div class="profile-row-name">${cfg.label}</div>
+        <div class="profile-row-val ${cls}">${disp}${cfg.unit}</div>
+        <div class="profile-row-ideal">Ideal: ${cfg.min}–${cfg.max}${cfg.unit} &nbsp;<span class="${cls}">${dot}</span></div>
+      </div>`;
+  }).join('');
+}
+
+// ─── CANVAS — FRONTAL ─────────────────────────────────────────────────────────
+function drawFrontalCanvas(d) {
+  const img    = document.getElementById('resultFrontal');
+  const canvas = document.getElementById('frontalCanvas');
+  canvas.width  = img.offsetWidth;
+  canvas.height = img.offsetHeight;
+  const ctx = canvas.getContext('2d');
+  const W   = canvas.width;
+  const H   = canvas.height;
+
+  const frontal = d.frontal_analysis;
+  const gr      = frontal.golden_ratio;
+  const sym     = frontal.symmetry;
+
+  // ── Corner brackets ──────────────────────────────────────────────────────
+  setTimeout(() => {
+    const m = W * 0.055, b = 22;
+    ctx.strokeStyle = 'rgba(201,168,76,0.22)';
+    ctx.lineWidth   = 0.8;
+    [[m,m,m+b,m,m,m+b],[W-m,m,W-m-b,m,W-m,m+b],
+     [m,H-m,m+b,H-m,m,H-m-b],[W-m,H-m,W-m-b,H-m,W-m,H-m-b]]
+    .forEach(([x1,y1,x2,y2,x3,y3]) => {
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x3,y3); ctx.stroke();
+    });
+  }, 150);
+
+  // ── Centre dashed axis ───────────────────────────────────────────────────
+  setTimeout(() => {
+    ctx.setLineDash([3,7]);
+    ctx.strokeStyle = 'rgba(245,240,232,0.1)';
+    ctx.lineWidth   = 0.7;
+    ctx.beginPath(); ctx.moveTo(W*.5, H*.06); ctx.lineTo(W*.5, H*.94); ctx.stroke();
+    ctx.setLineDash([]);
+  }, 300);
+
+  // ── Measurement lines ────────────────────────────────────────────────────
+  const lines = [
+    { y:.27, label:'EYE LEVEL',   score: sym.feature_scores?.eye_outer   || sym.score },
+    { y:.43, label:'NOSE BRIDGE', score: gr.breakdown?.nose_to_eye_width  || gr.score },
+    { y:.62, label:'NOSE BASE',   score: gr.breakdown?.mouth_to_nose_width|| gr.score },
+    { y:.76, label:'MOUTH LINE',  score: gr.breakdown?.pupil_to_mouth_width||gr.score },
+  ];
+
+  lines.forEach((ln, i) => {
+    setTimeout(() => {
+      const y  = H * ln.y;
+      const c  = scoreColor(ln.score);
+      const x0 = W * 0.07, x1 = W * 0.93;
+      ctx.shadowBlur  = 5;
+      ctx.shadowColor = c;
+      ctx.strokeStyle = c;
+      ctx.lineWidth   = 0.9;
+      ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+      ctx.shadowBlur  = 0;
+      // Ticks
+      [[x0,y-4,x0,y+4],[x1,y-4,x1,y+4]].forEach(([ax,ay,bx,by]) => {
+        ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by); ctx.stroke();
+      });
+      // Labels
+      ctx.font      = '500 9px Jost,sans-serif';
+      ctx.fillStyle = c;
+      ctx.textAlign = 'right';
+      ctx.fillText(ln.label, x1 - 5, y - 4);
+      ctx.font      = '300 10px Jost,sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(Math.round(ln.score), x0 + 5, y - 4);
+      setCaption(getCaptionText(ln.label, ln.score));
+    }, 450 + i * 380);
+  });
+
+  // ── Score overlay ────────────────────────────────────────────────────────
+  setTimeout(() => {
+    const gH   = H * 0.38;
+    const grad = ctx.createLinearGradient(0, H - gH, 0, H);
+    grad.addColorStop(0,   'transparent');
+    grad.addColorStop(0.4, 'rgba(8,8,8,0.72)');
+    grad.addColorStop(1,   'rgba(8,8,8,0.97)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, H - gH, W, gH);
+
+    animateScoreCanvas(ctx, W, H, gH, d);
+  }, 2100);
+}
+
+function getCaptionText(label, score) {
+  const interp = score >= 75 ? 'excellent' : score >= 55 ? 'good' : 'below ideal';
+  const map = {
+    'EYE LEVEL':   `Eye symmetry at this level — score ${Math.round(score)} — ${interp} alignment.`,
+    'NOSE BRIDGE': `Nose-to-eye width ratio — score ${Math.round(score)} — ${interp} proportion.`,
+    'NOSE BASE':   `Mouth-to-nose width ratio — score ${Math.round(score)} — ${interp} harmony.`,
+    'MOUTH LINE':  `Pupil-to-mouth ratio — score ${Math.round(score)} — ${interp} balance.`,
+  };
+  return map[label] || '';
+}
+
+function setCaption(text) {
+  document.getElementById('captionBar').textContent = text;
+}
+
+function animateScoreCanvas(ctx, W, H, gH, d) {
+  const target = d.overall_score;
+  const dur    = 1800;
+  const start  = performance.now();
+  const grade  = d.grade;
+  const shape  = d.face_shape?.shape || '';
+
+  function frame(now) {
+    const t   = Math.min((now - start) / dur, 1);
+    const ease= 1 - Math.pow(1 - t, 3);
+    const cur = Math.round(ease * target);
+    const c   = scoreColor(cur);
+    const fs  = Math.round(W * 0.21);
+
+    // Re-draw gradient
+    const grad = ctx.createLinearGradient(0, H - gH, 0, H);
+    grad.addColorStop(0, 'transparent');
+    grad.addColorStop(0.38, 'rgba(8,8,8,0.72)');
+    grad.addColorStop(1, 'rgba(8,8,8,0.97)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, H - gH, W, gH);
+
+    // Big score
+    ctx.font        = `300 ${fs}px 'Cormorant Garamond',Georgia,serif`;
+    ctx.fillStyle   = c;
+    ctx.textAlign   = 'center';
+    ctx.shadowBlur  = 18;
+    ctx.shadowColor = c;
+    ctx.fillText(cur, W * 0.5, H - gH * 0.17);
+    ctx.shadowBlur  = 0;
+
+    // /100
+    ctx.font      = `200 ${Math.round(W*0.048)}px Jost,sans-serif`;
+    ctx.fillStyle = 'rgba(245,240,232,0.35)';
+    ctx.fillText('/ 100', W * 0.5, H - gH * 0.04);
+
+    // Grade
+    ctx.font        = `300 ${Math.round(W*0.055)}px 'Cormorant Garamond',Georgia,serif`;
+    ctx.fillStyle   = '#c9a84c';
+    ctx.textAlign   = 'right';
+    ctx.letterSpacing = '0.3em';
+    ctx.fillText(`GRADE  ${grade}`, W * 0.93, H - gH * 0.44);
+
+    // Shape
+    ctx.font      = `200 ${Math.round(W*0.035)}px Jost,sans-serif`;
+    ctx.fillStyle = 'rgba(201,168,76,0.65)';
+    ctx.textAlign = 'left';
+    ctx.fillText(shape.toUpperCase() + '  FACE', W * 0.07, H - gH * 0.44);
+
+    if (t < 1) requestAnimationFrame(frame);
+    else setCaption(`Analysis complete — ${shape} face — overall score ${Math.round(target)} / 100.`);
+  }
+  requestAnimationFrame(frame);
+}
+
+// ─── CANVAS — SIDE PROFILE ────────────────────────────────────────────────────
+function drawSideCanvas(d) {
+  if (!d.side_profile_analysis) return;
+  const img    = document.getElementById('resultSide');
+  const canvas = document.getElementById('sideCanvas');
+  canvas.width  = img.offsetWidth;
+  canvas.height = img.offsetHeight;
+  const ctx = canvas.getContext('2d');
+  const W   = canvas.width, H = canvas.height;
+  const sp  = d.side_profile_analysis;
+
+  // Corner brackets
+  setTimeout(() => {
+    const m=W*.055, b=22;
+    ctx.strokeStyle='rgba(201,168,76,0.22)'; ctx.lineWidth=0.8;
+    [[m,m,m+b,m,m,m+b],[W-m,m,W-m-b,m,W-m,m+b],
+     [m,H-m,m+b,H-m,m,H-m-b],[W-m,H-m,W-m-b,H-m,W-m,H-m-b]]
+    .forEach(([x1,y1,x2,y2,x3,y3])=>{
+      ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x3,y3);ctx.stroke();
+    });
+  }, 200);
+
+  const measurements = sp.measurements || {};
+  const ideals = {
+    nasofrontal_angle_deg:  {label:'Nasofrontal',min:115,max:130,unit:'°',y:.28},
+    nasolabial_angle_deg:   {label:'Nasolabial', min:90, max:110,unit:'°',y:.52},
+    facial_convexity_deg:   {label:'Convexity',  min:160,max:170,unit:'°',y:.70},
+  };
+  let idx = 0;
+  Object.entries(ideals).forEach(([key, cfg]) => {
+    const val = measurements[key];
+    if (val == null) return;
+    const good = val >= cfg.min && val <= cfg.max;
+    const c    = good ? '#a8c5a0' : '#c97b6e';
+    setTimeout(() => {
+      const y   = H * cfg.y;
+      const xC  = W * 0.42;
+      const rad = W * 0.12;
+      ctx.strokeStyle  = c;
+      ctx.lineWidth    = 1;
+      ctx.shadowBlur   = 5;
+      ctx.shadowColor  = c;
+      ctx.beginPath();
+      ctx.arc(xC, y, rad, -Math.PI * 0.6, Math.PI * 0.1);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.font        = `300 ${Math.round(W*0.042)}px Jost,sans-serif`;
+      ctx.fillStyle   = c;
+      ctx.textAlign   = 'left';
+      ctx.fillText(`${val.toFixed(1)}${cfg.unit}`, xC + rad + 6, y + 4);
+      ctx.font      = `200 ${Math.round(W*0.032)}px Jost,sans-serif`;
+      ctx.fillStyle = 'rgba(245,240,232,0.4)';
+      ctx.fillText(cfg.label, xC + rad + 6, y + 4 + Math.round(W*0.042));
+    }, 350 + idx * 400);
+    idx++;
+  });
+
+  // Side score overlay
+  setTimeout(() => {
+    const gH   = H * 0.32;
+    const grad = ctx.createLinearGradient(0, H-gH, 0, H);
+    grad.addColorStop(0, 'transparent');
+    grad.addColorStop(0.4, 'rgba(8,8,8,0.72)');
+    grad.addColorStop(1, 'rgba(8,8,8,0.97)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, H-gH, W, gH);
+    const sc   = sp.score;
+    const c    = scoreColor(sc);
+    const fs   = Math.round(W * 0.17);
+    ctx.font        = `300 ${fs}px 'Cormorant Garamond',Georgia,serif`;
+    ctx.fillStyle   = c;
+    ctx.textAlign   = 'center';
+    ctx.shadowBlur  = 15;
+    ctx.shadowColor = c;
+    ctx.fillText(Math.round(sc), W*.5, H - gH * 0.15);
+    ctx.shadowBlur  = 0;
+    ctx.font      = `200 ${Math.round(W*0.04)}px Jost,sans-serif`;
+    ctx.fillStyle = 'rgba(245,240,232,0.35)';
+    ctx.fillText('PROFILE SCORE / 100', W*.5, H - gH * 0.02);
+    document.getElementById('sideCaption').textContent =
+      `Side profile score — ${Math.round(sc)} / 100 — ${sp.interpretation}.`;
+  }, 1800);
+}
+
+// ─── TOGGLE DETAILS ───────────────────────────────────────────────────────────
+function toggleDetails(key) {
+  const d   = document.getElementById(`d-${key}`);
+  const btn = d.previousElementSibling;
+  const open= d.classList.toggle('open');
+  btn.textContent = open ? 'Close ▴' : 'View Measurements ▾';
+}
+
+// ─── COPY RESULTS ─────────────────────────────────────────────────────────────
+async function copyResults() {
+  if (!lastResult) return;
+  const d   = lastResult;
+  const fa  = d.frontal_analysis;
+  const sp  = d.side_profile_analysis;
+  const txt = `✦ VISARA ANALYSIS RESULTS
+─────────────────────────
+Overall Score:    ${Math.round(d.overall_score)} / 100
+Grade:            ${d.grade}  —  ${d.overall_interpretation}
+Face Shape:       ${d.face_shape?.shape}
+
+FRONTAL ANALYSIS
+Golden Ratio:     ${Math.round(fa.golden_ratio?.score)} / 100
+Symmetry:         ${Math.round(fa.symmetry?.score)} / 100
+Canons:           ${Math.round(fa.neoclassical_canons?.score)} / 100
+Feature Prop.:    ${Math.round(fa.feature_proportions?.score)} / 100${sp ? `\nSide Profile:     ${Math.round(sp.score)} / 100` : ''}
+
+Measured by VISARA.com
+The science of your face.`;
+  try {
+    await navigator.clipboard.writeText(txt);
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = 'Copied ✓';
+    setTimeout(() => btn.textContent = 'Copy Results', 2000);
+  } catch(e) { alert('Copy failed. Please copy manually.'); }
+}
+
+// ─── RESET ────────────────────────────────────────────────────────────────────
+function resetAll() {
+  frontalFile = null;
+  sideFile    = null;
+  lastResult  = null;
+
+  ['frontal','side'].forEach(t => {
+    document.getElementById(`${t}Preview`).src = '';
+    document.getElementById(`${t}Zone`).classList.remove('has-image');
+    document.getElementById(`${t}Input`).value = '';
+  });
+
+  const resultsEl = document.getElementById('results');
+  resultsEl.classList.remove('visible');
+  resultsEl.style.display = 'none';
+  setTimeout(() => { resultsEl.style.display = ''; }, 50);
+
+  document.getElementById('sideWrap').style.display    = 'none';
+  document.getElementById('sideCaption').style.display = 'none';
+  document.getElementById('card-profile').style.display= 'none';
+
+  // Clear canvases
+  ['frontalCanvas','sideCanvas'].forEach(id => {
+    const c = document.getElementById(id);
+    c.getContext('2d').clearRect(0,0,c.width,c.height);
+  });
+
+  hideError();
+  updateBtn();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+setupZone('frontalZone','frontalInput','frontal');
+setupZone('sideZone',  'sideInput',   'side');
+</script>
+</body>
+</html>
